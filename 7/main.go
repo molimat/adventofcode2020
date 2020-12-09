@@ -16,10 +16,24 @@ type bag struct {
 func main() {
 	fileData := readFile("data")
 	allRelations := getHierarchy(fileData)
-	fathersMap := make(map[string]int)
-	total := countPaths(allRelations, "shiny gold", fathersMap)
-	fmt.Println(len(total))
-	//	fmt.Printf("%+v", total)
+	// fathersMap := make(map[string]int) // part 1
+	// total := countPaths(allRelations, "shiny gold", fathersMap) // part 1
+	total := countChildren(allRelations, "shiny gold")
+	fmt.Println(total)
+
+}
+
+func countChildren(b []bag, s string) int {
+	//s is the bag willing to be counted
+	children := getChildren(b, s)
+	total := 0
+	for _, value := range children {
+		total += value
+	}
+	for key, value := range children {
+		total += value * countChildren(b, key)
+	}
+	return total
 
 }
 
@@ -29,7 +43,7 @@ func countPaths(b []bag, s string, m map[string]int) map[string]int {
 	fathers, _ := getFathers(b, s)
 	for _, father := range fathers {
 		m[father] = 1
-		m = countPaths(b, father[:len(father)-5], m)
+		m = countPaths(b, father[:len(father)-6], m)
 	}
 	return m
 
@@ -51,12 +65,12 @@ func getFathers(b []bag, s string) ([]string, int) {
 	return fathers, counter
 }
 
-func getChildren(b []bag, s string) []string {
-	var children []string
+func getChildren(b []bag, s string) map[string]int {
+	children := make(map[string]int)
 	for _, bag := range b {
 		if strings.Contains(bag.name, s) && len(bag.inside) != 0 {
-			for key := range bag.inside {
-				children = append(children, key)
+			for key, value := range bag.inside {
+				children[key] = value
 			}
 		}
 	}
